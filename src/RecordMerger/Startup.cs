@@ -20,7 +20,14 @@ namespace RecordMerger
             var csvBody = String.Join(Environment.NewLine, rows.Select(row => String.Join(",", row)).ToArray());
             var csv = header + Environment.NewLine + csvBody;
 
-            File.WriteAllText(output.FullName, csv);
+            if (output == null)
+            {
+                Console.WriteLine(csv);
+            }
+            else
+            {
+                File.WriteAllText(output.FullName, csv);
+            }
         }
 
         public Dictionary<FileInfo, char> GetDelimsByFiles(FileInfo[] files)
@@ -31,6 +38,11 @@ namespace RecordMerger
 
             foreach (var file in files)
             {
+                if (!file.Exists)
+                {
+                    throw new ArgumentException($"{file.FullName} does not exist.");
+                }
+
                 string header = File.ReadLines(file.FullName).First();
                 foreach (var delimiter in delimiters)
                 {
@@ -45,7 +57,7 @@ namespace RecordMerger
 
             if (!found)
             {
-                Console.Error.WriteLine("Header does not contain a delimiter.");
+                throw new InvalidOperationException("Header does not contain a delimiter.");
             }
 
             return delimsByFiles;
@@ -76,7 +88,7 @@ namespace RecordMerger
 
                 if (columnNames.Length != 0 && !Enumerable.SequenceEqual(columnNames, tempColumnNames))
                 {
-                    Console.Error.WriteLine($"{item.Key.Name} column names do not match previous file.");
+                    throw new InvalidOperationException($"Column names throughout files do not match.");
                 }
                 else
                 {
@@ -89,6 +101,11 @@ namespace RecordMerger
 
         public Sort[] GetSorts(string[] sorts, Dictionary<string, int> positionsByColumnName)
         {
+            if (sorts.Length > 2)
+            {
+                throw new ArgumentException("Only allowed to sort by a max of 2 columns.");
+            }
+
             var sortsArr = new Sort[sorts.Length];
             var orderBys = new string[] {"asc", "desc"};
 
@@ -98,7 +115,7 @@ namespace RecordMerger
                 var columnName = arr[0];
                 if (!positionsByColumnName.ContainsKey(columnName))
                 {
-                    Console.Error.WriteLine($"Sort column, {columnName}, does not exist.");
+                    throw new ArgumentException($"Sort column, {columnName}, does not exist.");
                 }
                 var position = positionsByColumnName[columnName];
                 var sort = new Sort(position);
@@ -112,7 +129,7 @@ namespace RecordMerger
                     var orderBy = arr[1].ToLower();
                     if (!orderBys.Contains(orderBy))
                     {
-                        Console.Error.WriteLine("Acceptable order bys are 'asc' or 'desc'.");
+                        throw new ArgumentException($"Acceptable sorts are only 'asc' or 'desc', not {orderBy}.");
                     }
                     sort.By = orderBy; 
                 }
@@ -141,6 +158,10 @@ namespace RecordMerger
                             continue;
                         }
                         var row = s.Split(item.Value).Select(x => x.Trim()).ToArray();;
+                        for (int j = 0; j < row.Length; j++)
+                        {
+                            row[j] = TryGettingFormattedDate(row[j]);
+                        }
                         rows.Add(row);
                     }
                 }
@@ -200,6 +221,19 @@ namespace RecordMerger
             }
 
             return rows;
+        }
+
+        public string TryGettingFormattedDate(string str)
+        {
+            try
+            {
+                var dateTime = DateTime.Parse(str);
+                return dateTime.ToString("M/d/yyyy");
+            }
+            catch
+            {
+                return str;
+            }
         }
 
         public dynamic GetObject(string str)

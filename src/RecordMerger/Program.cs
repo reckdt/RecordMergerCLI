@@ -22,7 +22,6 @@ namespace RecordMerger
             var outputOption = new Option<FileInfo>(
                 "--output",
                 "An option whose argument is parsed as a FileInfo");
-            outputOption.IsRequired = true;
 
             // Create a root command with some options
             var rootCommand = new RootCommand
@@ -33,30 +32,22 @@ namespace RecordMerger
             rootCommand.Description = "Merges records";
 
             // Note that the parameters of the handler method are matched according to the names of the options
-            rootCommand.Handler = CommandHandler.Create<FileInfo[], string[], FileInfo>(Validate);
+            rootCommand.Handler = CommandHandler.Create<FileInfo[], string[], FileInfo>(TryRun);
 
             // Parse the incoming args and invoke the handler
             return rootCommand.InvokeAsync(args).Result;
         }
 
-        public static void Validate(FileInfo[] files, string[] sort, FileInfo output)
+        public static void TryRun(FileInfo[] files, string[] sort, FileInfo output)
         {
-            if (sort.Length > 2)
+            try
             {
-                Console.Error.WriteLine("Only allowed to sort by a max of 2 columns.");
-            }
-
-            foreach (var file in files)
+                var startup = new Startup();
+                startup.Run(files, sort, output);
+            } catch (Exception e)
             {
-                if (!file.Exists)
-                {
-                    Console.Error.WriteLine($"{file.FullName} does not exist.");
-                }
+                Console.Error.WriteLine(e.Message);
             }
-
-            var startup = new Startup();
-
-            startup.Run(files, sort, output);
         }
     }
 }
