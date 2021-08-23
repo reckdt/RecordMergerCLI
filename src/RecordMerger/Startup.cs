@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace RecordMerger
 {
-    class Startup
+    public class Startup
     {
-        public void Run(FileInfo[] files, string[] sort, FileInfo output)
+        public string Run(FileInfo[] files, string[] sort, FileInfo output)
         {
             var delimsByFiles = GetDelimsByFiles(files);
             var columnNames = GetColumnNames(delimsByFiles);
@@ -20,14 +20,7 @@ namespace RecordMerger
             var csvBody = String.Join(Environment.NewLine, rows.Select(row => String.Join(",", row)).ToArray());
             var csv = header + Environment.NewLine + csvBody;
 
-            if (output == null)
-            {
-                Console.WriteLine(csv);
-            }
-            else
-            {
-                File.WriteAllText(output.FullName, csv);
-            }
+            return csv;
         }
 
         public Dictionary<FileInfo, char> GetDelimsByFiles(FileInfo[] files)
@@ -57,7 +50,7 @@ namespace RecordMerger
 
             if (!found)
             {
-                throw new InvalidOperationException("Header does not contain a delimiter.");
+                throw new InvalidOperationException("Header does not contain a valid delimiter, only '|', ',', and ' ' accepted.");
             }
 
             return delimsByFiles;
@@ -88,7 +81,7 @@ namespace RecordMerger
 
                 if (columnNames.Length != 0 && !Enumerable.SequenceEqual(columnNames, tempColumnNames))
                 {
-                    throw new InvalidOperationException($"Column names throughout files do not match.");
+                    throw new InvalidOperationException("Column names throughout files do not match.");
                 }
                 else
                 {
@@ -181,11 +174,11 @@ namespace RecordMerger
                 var sort = sorts[0];
                 if (sort.By == "asc")
                 {
-                    rows = rows.OrderBy(arr => arr[sort.Position]).ToList();
+                    rows = rows.OrderBy(arr => GetObject(arr[sort.Position])).ToList();
                 }
                 else if (sort.By == "desc")
                 {
-                    rows = rows.OrderByDescending(arr => arr[sort.Position]).ToList();
+                    rows = rows.OrderByDescending(arr => GetObject(arr[sort.Position])).ToList();
                 }
             }
             else if (sorts.Length == 2 && sorts[0] != null && sorts[1] != null)

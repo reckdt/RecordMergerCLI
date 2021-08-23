@@ -43,7 +43,15 @@ namespace RecordMerger
             try
             {
                 var startup = new Startup();
-                startup.Run(files, sort, output);
+                string csv = startup.Run(files, sort, output);
+                if (output == null)
+                {
+                    Console.WriteLine(csv);
+                }
+                else
+                {
+                    File.WriteAllText(output.FullName, csv);
+                }
             } catch (Exception e)
             {
                 Console.Error.WriteLine(e.Message);
