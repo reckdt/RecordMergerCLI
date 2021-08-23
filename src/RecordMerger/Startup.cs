@@ -29,6 +29,7 @@ namespace RecordMerger
             var delimsByFiles = new Dictionary<FileInfo, char>();
             var found = false;
 
+            // checks if the header contains one of the specified delimiters
             foreach (var file in files)
             {
                 if (!file.Exists)
@@ -74,6 +75,7 @@ namespace RecordMerger
         {
             var columnNames = new string[] { };
 
+            // checks that the column names aren't different throughout the input files
             foreach (var item in delimsByFiles)
             {
                 string header = File.ReadLines(item.Key.FullName).First();
@@ -102,6 +104,7 @@ namespace RecordMerger
             var sortsArr = new Sort[sorts.Length];
             var orderBys = new string[] {"asc", "desc"};
 
+            // gets the sort fields and if asc or desc
             for (int i = 0; i < sorts.Length; i++)
             {
                 var arr = sorts[i].Split(":");
@@ -137,6 +140,7 @@ namespace RecordMerger
         {
             List<string[]> rows = new List<string[]>();
 
+            // reads the lines from the csv files and converts each line to an array of field values
             foreach (var item in delimsByFiles) 
             {
                 using (StreamReader sr = item.Key.OpenText())
@@ -165,6 +169,7 @@ namespace RecordMerger
 
         public List<string[]> SortRows(List<string[]> rows, Sort[] sorts)
         {
+            // does the sorting
             if (sorts.Length == 0)
             {
                 // do nothing
