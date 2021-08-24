@@ -42,7 +42,7 @@ namespace RecordMerger
         {
             try
             {
-                var startup = new Startup();
+                var startup = new StartupCLI();
                 string csv = startup.Run(files, sort, output);
 
                 // if no output file just write to console

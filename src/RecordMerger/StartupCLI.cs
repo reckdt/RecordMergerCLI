@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace RecordMerger
 {
-    public class Startup
+    public class StartupCLI
     {
         public string Run(FileInfo[] files, string[] sort, FileInfo output)
         {
@@ -13,19 +13,25 @@ namespace RecordMerger
             var columnNames = GetColumnNames(delimsByFiles);
             var positionsByColumnName = GetPositionsByColumnName(columnNames);
             var sorts = GetSorts(sort, positionsByColumnName);
-            var rows = GetRows(delimsByFiles);
+            var rows = GetRowsFromFiles(delimsByFiles);
             rows = SortRows(rows, sorts);
 
             var header = String.Join(",", columnNames);
-            var csvBody = String.Join(Environment.NewLine, rows.Select(row => String.Join(",", row)).ToArray());
+            var csvBody = GetCSVBody(rows);
             var csv = header + Environment.NewLine + csvBody;
 
             return csv;
         }
 
+        public string GetCSVBody(List<string[]> rows)
+        {
+            var csvBody = String.Join(Environment.NewLine, rows.Select(row => String.Join(",", row)).ToArray());
+
+            return csvBody;
+        }
+
         public Dictionary<FileInfo, char> GetDelimsByFiles(FileInfo[] files)
         {
-            var delimiters = new char[] {'|', ',', ' '};
             var delimsByFiles = new Dictionary<FileInfo, char>();
             var found = false;
 
@@ -38,14 +44,11 @@ namespace RecordMerger
                 }
 
                 string header = File.ReadLines(file.FullName).First();
-                foreach (var delimiter in delimiters)
+                var delimiter = GetDelimiter(header);
+                if (delimiter != '\0')
                 {
-                    if (header.Contains(delimiter))
-                    {
-                        delimsByFiles[file] = delimiter;
-                        found = true;
-                        break;                        
-                    }
+                    delimsByFiles[file] = delimiter;
+                    found = true;
                 }
             }
 
@@ -55,6 +58,23 @@ namespace RecordMerger
             }
 
             return delimsByFiles;
+        }
+
+        public char GetDelimiter(string line)
+        {
+            var delimiters = new char[] {'|', ',', ' '};
+            var returnedDelimiter = '\0';
+
+            foreach (var delimiter in delimiters)
+            {
+                if (line.Contains(delimiter))
+                {
+                    returnedDelimiter = delimiter;
+                    break;                        
+                }
+            }
+
+            return returnedDelimiter;
         }
 
         public Dictionary<string, int> GetPositionsByColumnName(string[] columnNames)
@@ -136,36 +156,71 @@ namespace RecordMerger
             return sortsArr;
         }
 
-        public List<string[]> GetRows(Dictionary<FileInfo, char> delimsByFiles)
+        public List<string> GetLines(FileInfo file)
+        {
+            List<string> lines = new List<string>();
+
+            using (StreamReader sr = file.OpenText())
+            {
+                string line = "";
+                long i = 0;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (i == 0)
+                    {
+                        i++;
+                        continue;
+                    }
+                    if (line == "")
+                    {
+                        continue;
+                    }
+                    
+                    lines.Add(line);
+                }
+            }
+
+            return lines;
+        }
+
+        public List<string[]> GetRows(List<string> lines, char delimiter)
         {
             List<string[]> rows = new List<string[]>();
 
-            // reads the lines from the csv files and converts each line to an array of field values
-            foreach (var item in delimsByFiles) 
+            foreach (var line in lines) 
             {
-                using (StreamReader sr = item.Key.OpenText())
-                {
-                    string s = "";
-                    long i = 0;
-                    while ((s = sr.ReadLine()) != null)
-                    {
-                        if (i == 0)
-                        {
-                            i++;
-                            continue;
-                        }
-                        var row = s.Split(item.Value).Select(x => x.Trim()).ToArray();;
-                        for (int j = 0; j < row.Length; j++)
-                        {
-                            row[j] = TryGettingFormattedDate(row[j]);
-                        }
-                        rows.Add(row);
-                    }
-                }
+                var row = GetRow(line, delimiter);
+                rows.Add(row);
             }
 
             return rows;
         }
+
+        public string[] GetRow(string line, char delimiter)
+        {
+            var row = line.Split(delimiter).Select(x => x.Trim()).ToArray();;
+            for (int j = 0; j < row.Length; j++)
+            {
+                row[j] = TryGettingFormattedDate(row[j]);
+            }
+
+            return row;
+        }
+
+        public List<string[]> GetRowsFromFiles(Dictionary<FileInfo, char> delimsByFiles)
+        {
+            List<string[]> rows = new List<string[]>();
+
+            foreach (var item in delimsByFiles)
+            {
+                var lines = GetLines(item.Key);
+                var rowsToAdd = GetRows(lines, item.Value);
+                rows.AddRange(rowsToAdd);
+            }
+
+            return rows;
+        }
+
 
         public List<string[]> SortRows(List<string[]> rows, Sort[] sorts)
         {

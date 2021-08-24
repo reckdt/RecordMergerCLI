@@ -36,7 +36,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
             var csv = startup.Run(fileInfos, sort, null);
             
             var expected = @"LastName,FirstName,Email,FavoriteColor,DateOfBirth
@@ -53,7 +53,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "FavoriteColor:asc", "LastName:asc" }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
             var csv = startup.Run(fileInfos, sort, null);
             
             var expected = @"LastName,FirstName,Email,FavoriteColor,DateOfBirth
@@ -74,7 +74,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "DateOfBirth:asc" }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
             var csv = startup.Run(fileInfos, sort, null);
 
             var expected = @"LastName,FirstName,Email,FavoriteColor,DateOfBirth
@@ -95,7 +95,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "LastName:desc" }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
             var csv = startup.Run(fileInfos, sort, null);
 
             var expected = @"LastName,FirstName,Email,FavoriteColor,DateOfBirth
@@ -116,7 +116,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
 
             try
             {
@@ -136,7 +136,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
 
             try
             {
@@ -156,7 +156,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "FirstName:asc", "LastName:asc", "FavoriteColor:asc"}; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
 
             try
             {
@@ -176,7 +176,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "MiddleName:asc" }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
 
             try
             {
@@ -196,7 +196,7 @@ namespace RecordMerger.Tests
             var fileInfos = GetFileInfos(fileNames);
             var sort = new string[] { "LastName:greaterthan" }; 
 
-            var startup = new Startup();
+            var startup = new StartupCLI();
 
             try
             {
