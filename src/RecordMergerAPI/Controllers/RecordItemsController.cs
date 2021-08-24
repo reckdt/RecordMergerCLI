@@ -40,7 +40,7 @@ namespace RecordMergerAPI.Controllers
             }
         }
 
-        public CSV GetCSV(string sort, List<RecordItem> recordItems)
+        private CSV GetCSV(string sort, List<RecordItem> recordItems)
         {
             var rows = GetRowsFromRecordItems(recordItems);
             var positionsByColumnName = new Dictionary<string, int>()
@@ -78,7 +78,7 @@ namespace RecordMergerAPI.Controllers
             return csv;
         }
 
-        public List<string[]> GetRowsFromRecordItems(List<RecordItem> recordItems)
+        private List<string[]> GetRowsFromRecordItems(List<RecordItem> recordItems)
         {
             List<string[]> rows = new List<string[]>();
 
